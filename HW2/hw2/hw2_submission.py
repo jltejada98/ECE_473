@@ -1,6 +1,8 @@
 import collections
 import math
 import numpy as np
+import string
+import re
 
 
 class Logistic_Regression():
@@ -80,8 +82,6 @@ class Logistic_Regression():
         ############################################################
         # BEGIN_YOUR_CODE
         # Calculate predicted y
-        if x.shape[0] == 188:
-            print("Error")
 
         z = x.dot(self.W) + self.b
         y_pred = self.sigmoid(z)
@@ -143,6 +143,7 @@ class Logistic_Regression():
         # BEGIN_YOUR_CODE
         # Calculate loss and update W
 
+        #Todo perform underflow correction
 
         s = 1.0 / (1.0 + np.exp(-z))
 
@@ -151,7 +152,7 @@ class Logistic_Regression():
         ############################################################
         
         return s
-#
+
 # class Naive_Bayes():
 #     def fit(self, X_train, y_train):
 #         """
@@ -257,92 +258,142 @@ class Logistic_Regression():
 #         return prediction
 #
 #
-# class Spam_Naive_Bayes(object):
-#     """Implementation of Naive Bayes for Spam detection."""
-#     def clean(self, s):
-#         translator = str.maketrans("", "", string.punctuation)
-#         return s.translate(translator)
-#
-#     def tokenize(self, text):
-#         text = self.clean(text).lower()
-#         return re.split("\W+", text)
-#
-#     def get_word_counts(self, words):
-#         """
-#         Generate a dictionary 'word_counts'
-#         Hint: You can use helper function self.clean and self.toeknize.
-#               self.tokenize(x) can generate a list of words in an email x.
-#
-#         Inputs:
-#             -words : list of words that is used in a data sample
-#         Output:
-#             -word_counts : contains each word as a key and number of that word is used from input words.
-#         """
-#         ############################################################
-#         ############################################################
-#         # BEGIN_YOUR_CODE
-#         # calculate naive bayes probability of each class of input x
-#
-#         pass
-#         # END_YOUR_CODE
-#         ############################################################
-#         ############################################################
-#
-#         return word_counts
-#
-#     def fit(self, X_train, y_train):
-#         """
-#         compute likelihood of all words given a class
-#
-#         Inputs:
-#             -X_train : list of emails
-#             -y_train : list of target label (spam : 1, non-spam : 0)
-#
-#         Variables:
-#             -self.num_messages : dictionary contains number of data that is spam or not
-#             -self.word_counts : dictionary counts the number of certain word in class 'spam' and 'ham'.
-#             -self.class_priors : dictionary of prior probability of class 'spam' and 'ham'.
-#         Output:
-#             None
-#         """
-#         ############################################################
-#         ############################################################
-#         # BEGIN_YOUR_CODE
-#         # calculate naive bayes probability of each class of input x
-#
-#         pass
-#         # END_YOUR_CODE
-#         ############################################################
-#         ############################################################
-#
-#     def predict(self, X):
-#         """
-#         predict that input X is spam of not.
-#         Given a set of words {x_i}, for x_i in an email(x), if the likelihood
-#
-#         p(x_0|spam) * p(x_1|spam) * ... * p(x_n|spam) * y(spam) > p(x_0|ham) * p(x_1|ham) * ... * p(x_n|ham) * y(ham),
-#
-#         then, the email would be spam.
-#
-#         Inputs:
-#             -X : list of emails
-#
-#         Output:
-#             -result : A numpy array of shape (N,). It should tell rather a mail is spam(1) or not(0).
-#         """
-#
-#         result = []
-#         for x in X:
-#             ############################################################
-#             ############################################################
-#             # BEGIN_YOUR_CODE
-#             # calculate naive bayes probability of each class of input x
-#
-#             pass
-#             # END_YOUR_CODE
-#             ############################################################
-#             ############################################################
-#
-#         result = np.array(result)
-#         return result
+
+
+class Spam_Naive_Bayes(object):
+    """Implementation of Naive Bayes for Spam detection."""
+    def __init__(self):
+        self.num_messages = dict()
+        self.word_counts = dict()
+        self.class_priors = dict()
+
+    def clean(self, s):
+        translator = str.maketrans("", "", string.punctuation)
+        return s.translate(translator)
+
+    def tokenize(self, text):
+        text = self.clean(text).lower()
+        return re.split("\W+", text)
+
+    def get_word_counts(self, words):
+        """
+        Generate a dictionary 'word_counts'
+        Hint: You can use helper function self.clean and self.toeknize.
+              self.tokenize(x) can generate a list of words in an email x.
+
+        Inputs:
+            -words : list of words that is used in a data sample
+        Output:
+            -word_counts : contains each word as a key and number of that word is used from input words.
+        """
+        ############################################################
+        ############################################################
+        # BEGIN_YOUR_CODE
+        # calculate naive bayes probability of each class of input x
+
+        clean_words = self.clean(words)
+        tokenized_words = self.tokenize(clean_words)
+
+        word_counts = dict()
+
+        for word in tokenized_words:
+            if word in word_counts:
+                word_counts[word] += 1
+            else:
+                word_counts[word] = 1
+
+        # END_YOUR_CODE
+        ############################################################
+        ############################################################
+
+        return word_counts
+
+    def fit(self, X_train, y_train):
+        """
+        compute likelihood of all words given a class
+
+        Inputs:
+            -X_train : list of emails
+            -y_train : list of target label (spam : 1, non-spam : 0)
+
+        Variables:
+            -self.num_messages : dictionary contains number of data that is spam or not
+            -self.word_counts : dictionary counts the number of certain word in class 'spam' and 'ham'.
+            -self.class_priors : dictionary of prior probability of class 'spam' and 'ham'.
+        Output:
+            None
+        """
+        ############################################################
+        ############################################################
+        # BEGIN_YOUR_CODE
+        # calculate naive bayes probability of each class of input x
+        self.num_messages['spam'] = y_train.count(1)
+        self.num_messages['ham'] = y_train.count(0)
+
+        self.class_priors['spam'] = self.num_messages['spam'] / len(y_train)
+        self.class_priors['ham'] = self.num_messages['ham'] / len(y_train)
+
+        self.word_counts['spam'] = dict()
+        self.word_counts['ham'] = dict()
+
+        for email, label in zip(X_train, y_train):
+            countDictionary = self.get_word_counts(email)
+            if label == 1: #Spam
+                for word in countDictionary:
+                    if word in self.word_counts['spam']:
+                        self.word_counts['spam'][word] += countDictionary[word]
+                    else:
+                        self.word_counts['spam'][word] = countDictionary[word]
+            elif label == 0: #Not Spam
+                for word in countDictionary:
+                    if word in self.word_counts['ham']:
+                        self.word_counts['ham'][word] += countDictionary[word]
+                    else:
+                        self.word_counts['ham'][word] = countDictionary[word]
+
+        # END_YOUR_CODE
+        ############################################################
+        ############################################################
+
+    def predict(self, X):
+        """
+        predict that input X is spam of not.
+        Given a set of words {x_i}, for x_i in an email(x), if the likelihood
+
+        p(x_0|spam) * p(x_1|spam) * ... * p(x_n|spam) * y(spam) > p(x_0|ham) * p(x_1|ham) * ... * p(x_n|ham) * y(ham),
+
+        then, the email would be spam.
+
+        Inputs:
+            -X : list of emails
+
+        Output:
+            -result : A numpy array of shape (N,). It should tell rather a mail is spam(1) or not(0).
+        """
+
+        result = []
+        for x in X:
+            ############################################################
+            ############################################################
+            # BEGIN_YOUR_CODE
+            # calculate naive bayes probability of each class of input x
+            emailWordCounts = self.get_word_counts(x)
+            alpha = 1e-6
+            spamProbability = 0
+            hamProbability = 0
+            for word in emailWordCounts:
+                spamProbability += math.log(alpha + emailWordCounts[word] / self.num_messages['spam'])
+                hamProbability += math.log(alpha + emailWordCounts[word] / self.num_messages['ham'])
+            spamProbability += math.log(self.class_priors['spam'])
+            hamProbability += math.log(self.class_priors['ham'])
+            if spamProbability > hamProbability:
+                result.append(1)
+            else:
+                result.append(0)
+            # END_YOUR_CODE
+            ############################################################
+            ############################################################
+
+        result = np.array(result)
+        return result
     
