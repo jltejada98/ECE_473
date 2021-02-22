@@ -143,7 +143,9 @@ class Logistic_Regression():
         # BEGIN_YOUR_CODE
         # Calculate loss and update W
 
-        #Todo perform underflow correction
+        #Ignoring underflow error
+
+        np.seterr( over='ignore' )
 
         s = 1.0 / (1.0 + np.exp(-z))
 
