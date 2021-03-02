@@ -21,19 +21,19 @@ data_digit = load_digits()
 X_train_digit, X_test_digit, y_train_digit, y_test_digit = train_test_split(data_digit.data, data_digit.target, test_size=0.33, random_state=seed)
 
 
-# def test_nn(X_train, X_test, y_train, y_test):
-#     lr = hw3.Neural_Network()
-#     lr.fit(X_train, y_train.reshape(-1,1))
-#
-#     acc = np.mean(lr.predict(X_test) == y_test.reshape(-1,1))
-#     print('test accuracy (yours) : {:.3f}'.format(acc))
-#
-#     LR = LogisticRegression(solver='liblinear')
-#     LR.fit(X_train, y_train)
-#
-#     y_hat = LR.predict(X_test)
-#     acc_LR = (np.mean(y_hat == y_test))
-#     print('test accuracy (sklearn package): {:.3f}'.format(acc_LR))
+def test_nn(X_train, X_test, y_train, y_test):
+    lr = hw3.Neural_Network()
+    lr.fit(X_train, y_train.reshape(-1,1))
+
+    acc = np.mean(lr.predict(X_test) == y_test.reshape(-1,1))
+    print('test accuracy (yours) : {:.3f}'.format(acc))
+
+    LR = LogisticRegression(solver='liblinear')
+    LR.fit(X_train, y_train)
+
+    y_hat = LR.predict(X_test)
+    acc_LR = (np.mean(y_hat == y_test))
+    print('test accuracy (sklearn package): {:.3f}'.format(acc_LR))
     
     
 def test_bayes(X_train, X_test, y_train, y_test):
@@ -53,8 +53,8 @@ def test_bayes(X_train, X_test, y_train, y_test):
     
     
 if __name__ == '__main__':
-    # print(' ######## Test Neural Network (Cancer) ######## ')
-    # test_nn(X_train_cancer, X_test_cancer, y_train_cancer, y_test_cancer)
+    print(' ######## Test Neural Network (Cancer) ######## ')
+    test_nn(X_train_cancer, X_test_cancer, y_train_cancer, y_test_cancer)
     
     print(' ######## Test Gaussian Naive Bayes (Cancer) ######## ')
     test_bayes(X_train_cancer, X_test_cancer, y_train_cancer, y_test_cancer)

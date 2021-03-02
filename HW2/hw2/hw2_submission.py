@@ -85,7 +85,7 @@ class Logistic_Regression():
 
         z = x.dot(self.W) + self.b
         y_pred = self.sigmoid(z)
-        np.where(y_pred > 0.5, 1, 0)
+        y_pred = np.where(y_pred > 0.5, 1, 0)
 
         # END_YOUR_CODE
         ############################################################

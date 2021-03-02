@@ -11,16 +11,16 @@ class Gaussian_Naive_Bayes():
                 training samples each of dimension D.
             - y_train: A numpy array of shape (N,) containing training labels; y[i] = c
                 means that X[i] has label 0 <= c < C for C classes.
-                
+
         With the input dataset, function gen_by_class will generate class-wise mean and variance to implement bayes inference.
 
         Returns:
         None
-        
+
         """
         self.x = X_train
-        self.y = y_train  
-        
+        self.y = y_train
+
         self.gen_by_class()
 
 
@@ -36,7 +36,7 @@ class Gaussian_Naive_Bayes():
         self.mean_by_class = dict()
         self.std_by_class = dict()
         self.y_prior = None
-        
+
         ############################################################
         ############################################################
         # BEGIN_YOUR_CODE
@@ -67,21 +67,21 @@ class Gaussian_Naive_Bayes():
 
         # END_YOUR_CODE
         ############################################################
-        ############################################################        
+        ############################################################
 
     def mean(self, x):
         ############################################################
         ############################################################
         # BEGIN_YOUR_CODE
         # Calculate mean of input x
-        
+
         mean = np.mean(x, axis=0)
-    
+
         # END_YOUR_CODE
         ############################################################
         ############################################################
         return mean
-    
+
     def std(self, x):
         ############################################################
         ############################################################
@@ -97,7 +97,7 @@ class Gaussian_Naive_Bayes():
         ############################################################
         ############################################################
         return std
-    
+
     def calc_gaussian_dist(self, x, mean, std):
         ############################################################
         ############################################################
@@ -119,11 +119,11 @@ class Gaussian_Naive_Bayes():
         Returns:
         - prediction: Predicted labels for the data in x. prediction is (N, C) dimensional array, for N samples and C classes.
         """
-            
+
         n = len(x)
         num_class = len(np.unique(self.y))
         prediction = np.zeros((n, num_class))
-        
+
         ############################################################
         ############################################################
         # BEGIN_YOUR_CODE
@@ -138,7 +138,7 @@ class Gaussian_Naive_Bayes():
         # END_YOUR_CODE
         ############################################################
         ############################################################
-        
+
         return prediction
 
 
@@ -193,8 +193,10 @@ class Neural_Network():
             ############################################################
             # BEGIN_YOUR_CODE
             # Update parameters with mini-batch stochastic gradient descent method
-
-            pass;
+            self.W1 -= gradient['dW1'] * learning_rate
+            self.b1 -= gradient['db1'] * learning_rate
+            self.W2 -= gradient['dW2'] * learning_rate
+            self.b2 -= gradient['db2'] * learning_rate
 
             # END_YOUR_CODE
             ############################################################
@@ -228,8 +230,11 @@ class Neural_Network():
             ############################################################
             # BEGIN_YOUR_CODE
             # Calculate y_hat which is probability of the instance is y = 0.
-
-            pass;
+            #Todo Determine if this is correct calculation
+            g1 = x_batch.dot(self.W1) + self.b1
+            h1 = self.activation(g1)
+            g2 = h1.dot(self.W2) + self.b2
+            y_hat = self.sigmoid(g2)
 
             # END_YOUR_CODE
             ############################################################
@@ -240,8 +245,32 @@ class Neural_Network():
             ############################################################
             # BEGIN_YOUR_CODE
             # Calculate loss and gradient
+            #Layer 1
+            log_delta = 1E-7 #Prevent divide by zero error
+            dLoss_yh = - np.divide(y_batch,y_hat +log_delta ) - np.divide(1-y_batch, 1-y_hat +log_delta)
+            dyh_g2 = self.sigmoid(g2)*(1-self.sigmoid(g2))
+            dg2_dh1 = self.W2
+            dh1_dg1 = np.where(g1 >= 0, 1,0)
+            dg1_dw1 = x_batch
+            gradient['dW1'] = ((dLoss_yh*dyh_g2*dg2_dh1*dh1_dg1).dot(dg1_dw1)).T + 2*reg*self.W1
 
-            pass;
+            gradient['db1'] = np.sum(dLoss_yh*dyh_g2*dg2_dh1*dh1_dg1)
+
+            # Layer 2
+            dg2_w2 = h1
+            gradient['dW2'] = h1.dot(dLoss_yh*dyh_g2) +  2*reg*self.W2
+            gradient['db2'] = np.sum(dLoss_yh*dyh_g2)
+
+            #Loss
+            sample_index = 0
+            num_samples = y_batch.shape[0]
+            summation = 0
+            while (sample_index < num_samples):
+                summation += y_batch[sample_index] * math.log(y_hat[sample_index] + log_delta) + (
+                            1 - y_batch[sample_index]) * math.log(1 - y_hat[sample_index] + log_delta)
+                sample_index += 1
+            loss = summation / num_samples
+
 
             # END_YOUR_CODE
             ############################################################
@@ -261,7 +290,7 @@ class Neural_Network():
         # BEGIN_YOUR_CODE
         # Implement ReLU
 
-        pass;
+        s = np.maximum(z, 0)
 
         # END_YOUR_CODE
         ############################################################
@@ -281,7 +310,7 @@ class Neural_Network():
         ############################################################
         # BEGIN_YOUR_CODE
 
-        pass;
+        s = 1.0 / (1.0 + np.exp(-z))
 
         # END_YOUR_CODE
         ############################################################
@@ -305,11 +334,14 @@ class Neural_Network():
         # BEGIN_YOUR_CODE
         # Calculate predicted y
 
-        pass;
+        g1 = x.dot(self.W1) + self.b1
+        h1 = self.activation(g1)
+        g2 = h1.dot(self.W2) + self.b2
+        y_hat = self.sigmoid(g2)
+        y_hat = np.where(y_hat > 0.5, 1, 0)
 
         # END_YOUR_CODE
         ############################################################
         ############################################################
         return y_hat
 
-    
