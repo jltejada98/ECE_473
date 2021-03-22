@@ -81,7 +81,7 @@ def insertVowels(queryWords, bigramCost, possibleFills):
     if len(queryWords) == 0:
         return ''
 
-    uniformCostSearch = util.UniformCostSearch(verbose=1)
+    uniformCostSearch = util.UniformCostSearch(verbose=0)
     uniformCostSearch.solve(VowelInsertionProblem(queryWords, bigramCost, possibleFills))
     if uniformCostSearch.actions == None:
         return queryWords[0]
