@@ -68,10 +68,17 @@ class VowelInsertionProblem(util.SearchProblem):
     def expand(self, state):
         # BEGIN_YOUR_CODE (our solution is 6 lines of code, but don't worry if you deviate from this)
         stateList = []
+        if len(self.possibleFills(self.queryWords[state[0]])) == 0: #No possible actions to be taken, see next word
+            action = self.queryWords[state[0]]
+            newState = (state[0] + 1, action)
+            cost = self.bigramCost(state[1], action)
+            stateList.append((action, newState, cost))
+            return stateList
+
         for reconstruct in self.possibleFills(self.queryWords[state[0]]):
             action = reconstruct
-            newState = (state[0] + 1, reconstruct)
-            cost = self.bigramCost(state[1], reconstruct)
+            newState = (state[0] + 1, action)
+            cost = self.bigramCost(state[1], action)
             stateList.append((action, newState, cost))
         return stateList
         # END_YOUR_CODE
@@ -81,10 +88,8 @@ def insertVowels(queryWords, bigramCost, possibleFills):
     if len(queryWords) == 0:
         return ''
 
-    uniformCostSearch = util.UniformCostSearch(verbose=0)
+    uniformCostSearch = util.UniformCostSearch(verbose=1)
     uniformCostSearch.solve(VowelInsertionProblem(queryWords, bigramCost, possibleFills))
-    if uniformCostSearch.actions == None:
-        return queryWords[0]
     return ' '.join(uniformCostSearch.actions)
     # END_YOUR_CODE
 
