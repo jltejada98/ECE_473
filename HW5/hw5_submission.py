@@ -11,13 +11,13 @@ class CounterexampleMDP(util.MDP):
     # Return a value of any type capturing the start state of the MDP.
     def startState(self):
         # BEGIN_YOUR_CODE (our solution is 1 line of code, but don't worry if you deviate from this)
-        raise NotImplementedError
+        return 'S'
         # END_YOUR_CODE
 
     # Return a list of strings representing actions possible from |state|.
     def actions(self, state):
         # BEGIN_YOUR_CODE (our solution is 1 line of code, but don't worry if you deviate from this)
-        raise NotImplementedError
+        return ['Move']
         # END_YOUR_CODE
 
     # Given a |state| and |action|, return a list of (newState, prob, reward) tuples
@@ -25,13 +25,16 @@ class CounterexampleMDP(util.MDP):
     # Remember that if |state| is an end state, you should return an empty list [].
     def succAndProbReward(self, state, action):
         # BEGIN_YOUR_CODE (our solution is 1 line of code, but don't worry if you deviate from this)
-        raise NotImplementedError
+        if state in ['A', 'B']:
+            return []
+        else:
+            return [('A', 0.75, 0), ('B', 0.25, 10)]
         # END_YOUR_CODE
 
     # Set the discount factor (float or integer) for your counterexample MDP.
     def discount(self):
         # BEGIN_YOUR_CODE (our solution is 1 line of code, but don't worry if you deviate from this)
-        raise NotImplementedError
+        return 1
         # END_YOUR_CODE
 
 ############################################################
@@ -79,7 +82,52 @@ class BlackjackMDP(util.MDP):
     #   don't include that state in the list returned by succAndProbReward.
     def succAndProbReward(self, state, action):
         # BEGIN_YOUR_CODE (our solution is 37 lines of code, but don't worry if you deviate from this)
-        raise NotImplementedError
+        totalCardValue, nextCardPeekedIndex, deckCardCounts = state
+        succProbRewards = []
+        if deckCardCounts is None:  # End state
+            return []
+
+        if action == 'Quit':
+            newState = (totalCardValue, nextCardPeekedIndex, None)
+            succProbRewards.append((newState, 1, totalCardValue)) #Get total card value, No cards in deck
+        elif action == 'Peek':
+            if nextCardPeekedIndex != None:  # Cannot  peek twice
+                return []
+            else:
+                for i in range(len(self.cardValues)):  # Peek one card from each value if there are available
+                    if deckCardCounts[i] > 0:
+                        newState = (totalCardValue, i, deckCardCounts)
+                        prob = deckCardCounts[i] / sum(deckCardCounts)
+                        succProbRewards.append((newState, prob, -self.peekCost))
+        elif action == 'Take':
+            if nextCardPeekedIndex != None:  # Take peeked card and move to appropiate next state
+                totalCardValue += self.cardValues[nextCardPeekedIndex]
+                if totalCardValue > self.threshold:  # Bust -> Move to End state
+                    newState = (0, None, None)
+                    succProbRewards.append((newState, 1, 0))
+                else:
+                    newCardCounts = list(deckCardCounts)
+                    newCardCounts[nextCardPeekedIndex] -= 1 #Remove peeked card
+                    newState = (totalCardValue, None, tuple(newCardCounts))
+                    succProbRewards.append((newState, 1, 0))
+            else: #No Card previously peeked, check all card values that have at least one card
+                for i in range(len(self.cardValues)):
+                    if deckCardCounts[i] > 0:
+                        newCardCounts = list(deckCardCounts)
+                        newCardValueInHand = totalCardValue + self.cardValues[i]
+                        prob = deckCardCounts[i] / sum(deckCardCounts)
+                        newCardCounts[i] -= 1
+                        if newCardValueInHand > self.threshold:  # Bust -> End State
+                            newState = (newCardValueInHand, None, None)
+                            succProbRewards.append((newState, prob, 0))
+                        else:
+                            if sum(newCardCounts) > 0:  #If the deck still has cards left
+                                newState = (newCardValueInHand, None, tuple(newCardCounts))
+                                succProbRewards.append((newState, prob, 0))
+                            else: #Empty Deck, essentially quitting state
+                                newState = (newCardValueInHand, None, None)
+                                succProbRewards.append((newState, prob, newCardValueInHand))
+        return succProbRewards
         # END_YOUR_CODE
 
     def discount(self):
@@ -94,7 +142,7 @@ def peekingMDP():
     optimal action at least 10% of the time.
     """
     # BEGIN_YOUR_CODE (our solution is 1 line of code, but don't worry if you deviate from this)
-    raise NotImplementedError
+    return BlackjackMDP(cardValues=[2,3,15], multiplicity=6,threshold=20, peekCost=1)
     # END_YOUR_CODE
 
 ############################################################
@@ -142,7 +190,14 @@ class QLearningAlgorithm(util.RLAlgorithm):
     # self.getQ() to compute the current estimate of the parameters.
     def incorporateFeedback(self, state, action, reward, newState):
         # BEGIN_YOUR_CODE (our solution is 8 lines of code, but don't worry if you deviate from this)
-        raise NotImplementedError
+        n = self.getStepSize()
+        if newState != None:
+            V_opt = max((self.getQ(newState, possibleActions)) for possibleActions in self.actions(newState))
+        else:
+            V_opt = 0
+        Q_opt = self.getQ(state, action)
+        for f, v in self.featureExtractor(state, action).items():
+            self.weights[f] -= n * (Q_opt - (reward + self.discount * V_opt)) * v
         # END_YOUR_CODE
 
 # Return a single-element dict containing a binary (indicator) feature
@@ -166,7 +221,7 @@ def simulate_QL_over_MDP(mdp, featureExtractor):
     # that you add a few lines of code here to run value iteration, simulate Q-learning on the MDP,
     # and then print some stats comparing the policies learned by these two approaches.
     # BEGIN_YOUR_CODE (our solution is 9 lines of code, but don't worry if you deviate from this)
-    pass
+    raise NotImplementedError
     # END_YOUR_CODE
 
 ############################################################
