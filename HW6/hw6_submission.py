@@ -278,7 +278,40 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     """
 
     # BEGIN_YOUR_CODE (our solution is 17 lines of code, but don't worry if you deviate from this)
-    raise Exception('Not implemented yet')
+    def Vexptimax(gameState, agentIndex, currentDepth):
+      #Terminating Conditions
+      if gameState.isWin() or gameState.isLose():
+        return gameState.getScore()
+      elif currentDepth == 0:
+        return self.evaluationFunction(gameState)
+
+      if agentIndex == 0: #Pacman
+          maxVminimax = float("-inf")
+          for action in gameState.getLegalActions(agentIndex):
+            successorState = gameState.generateSuccessor(agentIndex, action)
+            maxVminimax = max(maxVminimax, Vexptimax(successorState, agentIndex+1, currentDepth))
+          return maxVminimax
+      else: #Ghosts
+        if agentIndex == (gameState.getNumAgents() - 1):
+          currentDepth -= 1
+        minVminimax = 0
+        #Probabilistic action -> Calculate mean value of available actions
+        for action in gameState.getLegalActions(agentIndex):
+          successorState = gameState.generateSuccessor(agentIndex, action)
+          newAgentIndex = (agentIndex + 1) % gameState.getNumAgents()
+          minVminimax += Vexptimax(successorState,newAgentIndex, currentDepth)
+        minVminimax = minVminimax / len(gameState.getLegalActions(agentIndex))
+        return minVminimax
+
+
+
+    decisionValue = (float("-inf"), Directions.STOP)
+    for action in gameState.getLegalActions(0):
+      successorState = gameState.generateSuccessor(0, action)
+      VminimaxTuple = (Vexptimax(successorState, 1, self.depth), action)
+      decisionValue = max(decisionValue, VminimaxTuple)
+
+    return decisionValue[1]
     # END_YOUR_CODE
 
 ######################################################################################
