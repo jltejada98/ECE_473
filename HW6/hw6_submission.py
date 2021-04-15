@@ -195,8 +195,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
       VminimaxTuple = (Vminimax(successorState, 1, self.depth), action)
       decisionValue = max(decisionValue, VminimaxTuple)
 
-    print(decisionValue[0])
-
+    # print(decisionValue[0])
 
     return decisionValue[1]
     # END_YOUR_CODE
@@ -215,7 +214,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     """
 
     # BEGIN_YOUR_CODE (our solution is 32 lines of code, but don't worry if you deviate from this)
-    def Vminimax(gameState, agentIndex, currentDepth, alphaValue, betaValue):
+    def VAlphaBeta(gameState, agentIndex, currentDepth, alphaValue, betaValue):
       #Terminating Conditions
       if gameState.isWin() or gameState.isLose():
         return gameState.getScore()
@@ -226,11 +225,11 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           maxVminimax = float("-inf")
           for action in gameState.getLegalActions(agentIndex):
             successorState = gameState.generateSuccessor(agentIndex, action)
-            maxVminimax = max(maxVminimax, Vminimax(successorState, agentIndex+1, currentDepth))
+            maxVminimax = max(maxVminimax, VAlphaBeta(successorState, agentIndex+1, currentDepth, alphaValue, betaValue))
             #Determine if beta-Condition satisfied
             if maxVminimax >= betaValue:
               return maxVminimax
-            #Update AlphaValue
+            #Update Alpha Value
             alphaValue = max(alphaValue, maxVminimax)
           return maxVminimax
       else: #Ghosts - MIN AGENT
@@ -240,15 +239,23 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         for action in gameState.getLegalActions(agentIndex):
           successorState = gameState.generateSuccessor(agentIndex, action)
           newAgentIndex = (agentIndex + 1) % gameState.getNumAgents()
-          minVminimax = min(minVminimax, Vminimax(successorState,newAgentIndex, currentDepth))
-          #Beta Values
+          minVminimax = min(minVminimax, VAlphaBeta(successorState,newAgentIndex, currentDepth, alphaValue, betaValue))
+          #Determine if alpha-Condition satisfied
           if minVminimax <= alphaValue:
             return minVminimax
-          #Update Beta Values
+          #Update Beta Value
           betaValue = min(betaValue, minVminimax)
-
-
         return minVminimax
+
+    decisionValue = (float("-inf"), Directions.STOP)
+    for action in gameState.getLegalActions(0):
+      successorState = gameState.generateSuccessor(0, action)
+      VminimaxTuple = (VAlphaBeta(successorState, 1, self.depth,float("-inf"), float("+inf")), action)
+      decisionValue = max(decisionValue, VminimaxTuple)
+
+    # print(decisionValue[0])
+
+    return decisionValue[1]
 
 
 
