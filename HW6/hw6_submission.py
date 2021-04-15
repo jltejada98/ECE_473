@@ -164,7 +164,41 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
 
     # BEGIN_YOUR_CODE (our solution is 17 lines of code, but don't worry if you deviate from this)
-    raise Exception('Not implemented yet')
+    def Vminimax(gameState, agentIndex, currentDepth):
+      #Terminating Conditions
+      if gameState.isWin() or gameState.isLose():
+        return gameState.getScore()
+      elif currentDepth == 0:
+        return self.evaluationFunction(gameState)
+
+      if agentIndex == 0: #Pacman
+          maxVminimax = float("-inf")
+          for action in gameState.getLegalActions(agentIndex):
+            successorState = gameState.generateSuccessor(agentIndex, action)
+            maxVminimax = max(maxVminimax, Vminimax(successorState, agentIndex+1, currentDepth))
+          return maxVminimax
+      else: #Ghosts
+        if agentIndex == (gameState.getNumAgents() - 1):
+          currentDepth -= 1
+        minVminimax = float("+inf")
+        for action in gameState.getLegalActions(agentIndex):
+          successorState = gameState.generateSuccessor(agentIndex, action)
+          newAgentIndex = (agentIndex + 1) % gameState.getNumAgents()
+          minVminimax = min(minVminimax, Vminimax(successorState,newAgentIndex, currentDepth))
+        return minVminimax
+
+
+
+    decisionValue = (float("-inf"), Directions.STOP)
+    for action in gameState.getLegalActions(0):
+      successorState = gameState.generateSuccessor(0, action)
+      VminimaxTuple = (Vminimax(successorState, 1, self.depth), action)
+      decisionValue = max(decisionValue, VminimaxTuple)
+
+    print(decisionValue[0])
+
+
+    return decisionValue[1]
     # END_YOUR_CODE
 
 ######################################################################################
@@ -181,7 +215,43 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     """
 
     # BEGIN_YOUR_CODE (our solution is 32 lines of code, but don't worry if you deviate from this)
-    raise Exception('Not implemented yet')
+    def Vminimax(gameState, agentIndex, currentDepth, alphaValue, betaValue):
+      #Terminating Conditions
+      if gameState.isWin() or gameState.isLose():
+        return gameState.getScore()
+      elif currentDepth == 0:
+        return self.evaluationFunction(gameState)
+
+      if agentIndex == 0: #Pacman - MAX AGENT
+          maxVminimax = float("-inf")
+          for action in gameState.getLegalActions(agentIndex):
+            successorState = gameState.generateSuccessor(agentIndex, action)
+            maxVminimax = max(maxVminimax, Vminimax(successorState, agentIndex+1, currentDepth))
+            #Determine if beta-Condition satisfied
+            if maxVminimax >= betaValue:
+              return maxVminimax
+            #Update AlphaValue
+            alphaValue = max(alphaValue, maxVminimax)
+          return maxVminimax
+      else: #Ghosts - MIN AGENT
+        if agentIndex == (gameState.getNumAgents() - 1):
+          currentDepth -= 1
+        minVminimax = float("+inf")
+        for action in gameState.getLegalActions(agentIndex):
+          successorState = gameState.generateSuccessor(agentIndex, action)
+          newAgentIndex = (agentIndex + 1) % gameState.getNumAgents()
+          minVminimax = min(minVminimax, Vminimax(successorState,newAgentIndex, currentDepth))
+          #Beta Values
+          if minVminimax <= alphaValue:
+            return minVminimax
+          #Update Beta Values
+          betaValue = min(betaValue, minVminimax)
+
+
+        return minVminimax
+
+
+
     # END_YOUR_CODE
 
 ######################################################################################
