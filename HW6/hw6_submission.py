@@ -325,10 +325,82 @@ def betterEvaluationFunction(currentGameState):
     """
 
     # BEGIN_YOUR_CODE (our solution is 17 lines of code, but don't worry if you deviate from this)
-    raise Exception('Not implemented yet')
+    pacmanPosition = currentGameState.getPacmanPosition()
+    ghostStates = currentGameState.getGhostStates()
+    capsulePositions = currentGameState.getCapsules()
+    foodList = currentGameState.getFood().asList()
+
+    #PRIORITY 1: GET AWAY FROM HUNTING GHOSTS
+    #PRIORITY 2: GET CLOSER TO CAPSULES BEFORE SCARED TIME EXPIRES (DECISION BOUNDARY)
+    #PRIORITY 3: GET CLOSER TO SCARED PROVIDED THERE IS ENOUGH TIME
+    #PRIOTITY 4: GET SMALLER FOOD
+
+    distanceToHuntingGhosts = []
+    distanceToScaredGhosts = []
+    for g in ghostStates:
+      if g.scaredTimer == 0: #Hunting Ghost
+        distanceToHuntingGhosts.append(util.manhattanDistance(pacmanPosition, g.getPosition()))
+      else: #Scared Ghosts
+        distanceToScaredGhosts.append((util.manhattanDistance(pacmanPosition,g.getPosition()), g.scaredTimer))
+
+    distanceToCapsules = []
+    for capsulePos in capsulePositions:
+      distanceToCapsules.append(util.manhattanDistance(pacmanPosition, capsulePos))
+
+   #Distance to closest hunting ghost
+    if len(distanceToHuntingGhosts):
+      distanceToClosestHuntingGhost = min(distanceToHuntingGhosts)
+    else:
+      distanceToClosestHuntingGhost = float("inf")
+
+    # Distance to closest capsule
+    if len(distanceToCapsules):
+      distanceToClosestCapsule = min(distanceToCapsules)
+    else:
+      distanceToClosestCapsule = float("inf")
+
+      #Distance to closest food
+    distanceToFood = []
+    for f in foodList:
+      distanceToFood.append(util.manhattanDistance(pacmanPosition, f))
+    distanceToClosestFood = min(distanceToFood)
+
+    class weights(enumerate):
+      huntingGhost = -1.575
+      capsule = -3.0
+      food = -0.75
+      numFood = -2.0
+      scaredGhost = 15.75
+
+    score = currentGameState.getScore() + weights.huntingGhost /distanceToClosestHuntingGhost + weights.capsule /distanceToClosestCapsule \
+            + weights.food *distanceToClosestFood + weights.numFood*len(foodList)
+
+    #Distance to closest scared ghost
+    if len(distanceToScaredGhosts):
+      distanceToClosestScaredGhost = float("inf")
+      for i,j in distanceToScaredGhosts:
+        if i < distanceToClosestScaredGhost:
+          distanceToClosestScaredGhost = i
+          timerOfClosestScaredGhost = j
+
+      score += weights.scaredGhost *timerOfClosestScaredGhost/distanceToClosestScaredGhost
+
+    return score
+
     # END_YOUR_CODE
 
 # Abbreviation
 better = betterEvaluationFunction
 
 # Problem 4b : Describe your evaluation function.
+# This evaluation function has four main objectives. First and foremost, this function tries to avoid the nearest hunting
+# ghost as much as possible, as this brings an immediate end to the game. Secondly, in order to prevent huinting ghosts
+# we want to stay relatively close to capsules. Third, we want to use the capsules to be able to eat scared ghosts and
+# increase the score rapidly. Lastly, provided all of these objectives are satisfied, we want to eat the food pellets.
+# The score is simply a weighted combination of the following: negative inverse of the distance to the closest hunting ghost (Since
+# the closer it is the more we should want to stay away), inverse of the distance to the capsule (Want to get to them
+# as this prevents ghosts), negative distance to the closest food pellet and negative number of pellets (As we want
+# to decrease the number of them). Lastly, in order to be able to try to eat the scared ghosts with enough time, we add
+# we find the closest scared ghost and its timer, by dividing the timer by the distance to it and weighting it, we seek
+# to increase our score by having a ghost with a long time and short distance away from us. These factors in combination
+# yield a very high reward and manageable risk strategy.
